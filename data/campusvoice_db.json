@@ -1,0 +1,228 @@
+{
+  "issues": [
+    {
+      "id": "CV-1847",
+      "category": "Classroom",
+      "priority": "HIGH",
+      "assignedDept": "Electrical & Maintenance",
+      "title": "Air Conditioner malfunction in Room 304 (C-Block)",
+      "description": "The split AC unit makes loud grinding noise and cooling cuts out after 10 minutes of lecture.",
+      "evidence": "evidence_room304.jpg",
+      "date": "2026-10-07",
+      "status": "REPORTED",
+      "adminRemarks": "Facility manager notified. Awaiting technician inspection.",
+      "votes": {
+        "frequently": 4,
+        "sometimes": 2,
+        "never": 1
+      },
+      "reverify": {
+        "resolved": 0,
+        "partially": 0,
+        "stillFacing": 0
+      },
+      "voterHashes": []
+    },
+    {
+      "id": "CV-4821",
+      "category": "Laboratory",
+      "priority": "CRITICAL",
+      "assignedDept": "IT Cell & Laboratories",
+      "title": "GPU workstations rebooting during PyTorch model training in AI Lab 2",
+      "description": "Systems 14 to 22 experience kernel panics and black screens under GPU load. Pending cohort verification voting.",
+      "evidence": "crash_log.png",
+      "date": "2026-10-08",
+      "status": "UNDER VERIFICATION",
+      "adminRemarks": "Diagnostic initiated. Systems benchmarked with CUDA 12.4.",
+      "votes": {
+        "frequently": 28,
+        "sometimes": 8,
+        "never": 2
+      },
+      "reverify": {
+        "resolved": 0,
+        "partially": 0,
+        "stillFacing": 0
+      },
+      "voterHashes": []
+    },
+    {
+      "id": "CV-7392",
+      "category": "Other",
+      "priority": "MEDIUM",
+      "assignedDept": "Electrical & Maintenance",
+      "title": "Water dispenser RO filter replacement required on 2nd Floor",
+      "description": "Water pressure low and TDS indicator blinking red near Department office.",
+      "evidence": "filter_photo.jpg",
+      "date": "2026-10-05",
+      "status": "RESOLVED",
+      "adminRemarks": "New commercial RO membrane and filter cartridges installed by vendor.",
+      "votes": {
+        "frequently": 32,
+        "sometimes": 10,
+        "never": 1
+      },
+      "reverify": {
+        "resolved": 8,
+        "partially": 1,
+        "stillFacing": 0
+      },
+      "voterHashes": []
+    },
+    {
+      "id": "CV-2950",
+      "category": "Canteen",
+      "priority": "MEDIUM",
+      "assignedDept": "Canteen Management Board",
+      "title": "Digital payment terminal QR code scanner damaged",
+      "description": "Students experiencing long queue bottlenecks during short breaks due to cash-only transactions.",
+      "evidence": "scanner_damage.jpg",
+      "date": "2026-10-09",
+      "status": "REPORTED",
+      "adminRemarks": "Vendor contacted to deploy backup UPI soundbox terminal.",
+      "votes": {
+        "frequently": 6,
+        "sometimes": 1,
+        "never": 0
+      },
+      "reverify": {
+        "resolved": 0,
+        "partially": 0,
+        "stillFacing": 0
+      },
+      "voterHashes": []
+    },
+    {
+      "id": "CV-5120",
+      "category": "Faculty",
+      "priority": "HIGH",
+      "assignedDept": "Academic Dean Office",
+      "title": "Computer Vision practical lab session scheduling overlap",
+      "description": "AI Lab 3 timetable shows concurrent slot reservation for both Sec B and Sec C on Thursdays.",
+      "evidence": "timetable_clash.pdf",
+      "date": "2026-10-06",
+      "status": "CLASS VERIFIED",
+      "adminRemarks": "Academic coordinator revising timetable to assign Sec C to AI Lab 1.",
+      "votes": {
+        "frequently": 24,
+        "sometimes": 6,
+        "never": 1
+      },
+      "reverify": {
+        "resolved": 0,
+        "partially": 0,
+        "stillFacing": 0
+      },
+      "voterHashes": []
+    }
+  ],
+  "students": [
+    {
+      "id": "183",
+      "password": "1234",
+      "name": "Yash Raj",
+      "roll": "24EARAD183",
+      "email": "yashraj.ai@aryacollege.in",
+      "dept": "B.Tech Artificial Intelligence & Data Science",
+      "section": "C"
+    },
+    {
+      "id": "185",
+      "password": "1234",
+      "name": "Rohan Verma",
+      "roll": "24EARAD185",
+      "email": "rohan.verma@aryacollege.in",
+      "dept": "B.Tech Artificial Intelligence & Data Science",
+      "section": "C"
+    }
+  ],
+  "admins": [
+    {
+      "username": "admin",
+      "password": "admin123",
+      "name": "Master Administrator",
+      "email": "admin@aryacollege.in",
+      "department": "Central Grievance Office",
+      "role": "Super Admin",
+      "dateAdded": "2026-08-01",
+      "isPrimary": true
+    },
+    {
+      "username": "hod_cse",
+      "password": "admin123",
+      "name": "Dr. Sandeep Sharma",
+      "email": "hod.cse@aryacollege.in",
+      "department": "Academic Dean Office",
+      "role": "Department Head",
+      "dateAdded": "2026-09-15",
+      "isPrimary": false
+    },
+    {
+      "username": "proctor_it",
+      "password": "admin123",
+      "name": "Prof. Neha Gupta",
+      "email": "proctor@aryacollege.in",
+      "department": "IT Cell & Laboratories",
+      "role": "Proctorial Board",
+      "dateAdded": "2026-10-01",
+      "isPrimary": false
+    }
+  ],
+  "auditLogs": [
+    {
+      "timestamp": "2026-10-05 10:15",
+      "issueId": "CV-7392",
+      "action": "ISSUE_REPORTED",
+      "actor": "ANONYMOUS_STUDENT",
+      "remarks": "Anonymous report filed for water dispenser filter replacement."
+    },
+    {
+      "timestamp": "2026-10-06 14:30",
+      "issueId": "CV-7392",
+      "action": "STATUS_PROMOTED",
+      "actor": "VERIFICATION_ENGINE",
+      "remarks": "Quorum reached (71.6% participation). Promoted to CLASS VERIFIED."
+    },
+    {
+      "timestamp": "2026-10-07 16:45",
+      "issueId": "CV-7392",
+      "action": "STATUS_RESOLVED",
+      "actor": "ADMIN (DEPT_HEAD)",
+      "remarks": "Maintenance completed; replacement verified."
+    },
+    {
+      "timestamp": "2026-10-08 11:20",
+      "issueId": "CV-4821",
+      "action": "ISSUE_REPORTED",
+      "actor": "ANONYMOUS_STUDENT",
+      "remarks": "Critical GPU workstation rebooting reported in AI Lab 2."
+    },
+    {
+      "timestamp": "2026-10-08 12:00",
+      "issueId": "CV-4821",
+      "action": "STATUS_CHANGE",
+      "actor": "VERIFICATION_ENGINE",
+      "remarks": "Class verification active. Daily tokens circulating."
+    }
+  ],
+  "notices": [
+    {
+      "date": "10 Oct 2026",
+      "title": "AI Lab 2 GPU Workstation Diagnostic Schedule",
+      "body": "Technicians from the vendor support team will service workstations 14 through 22 between 2:00 PM and 5:00 PM on Friday.",
+      "dept": "IT Cell & Laboratories"
+    },
+    {
+      "date": "08 Oct 2026",
+      "title": "Canteen Payment Terminal Replacement",
+      "body": "A new multi-bank UPI QR scanner terminal has been deployed at Counter 2 to alleviate rush hour delays.",
+      "dept": "Canteen Management Board"
+    },
+    {
+      "date": "06 Oct 2026",
+      "title": "C-Block Water Filtration System Complete Overhaul",
+      "body": "TDS levels have been calibrated to RTU safety benchmarks (110 ppm) following replacement of all active carbon filters.",
+      "dept": "Electrical & Maintenance"
+    }
+  ]
+}
