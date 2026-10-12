@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusVoice - Anonymous Student Grievance & Verification System</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom Design System Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: ['class', '[data-theme="dark"]'],
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+              950: '#0b0f19'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="selection:bg-blue-600 selection:text-white flex flex-col min-h-screen">
+
+  <!-- ======================================================== -->
+  <!-- 0. TOAST NOTIFICATION HUB -->
+  <!-- ======================================================== -->
+  <div id="toast-container"></div>
+
+  <!-- ======================================================== -->
+  <!-- GLOBAL HEADER / APP BAR -->
+  <!-- ======================================================== -->
+  <header class="glass-panel sticky top-0 z-40 border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 py-2 flex items-center justify-between gap-4">
+      
+      <!-- Left: Logo & College Identity -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="handleLogoClick()">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center text-white text-lg shadow-lg shadow-blue-500/25 ring-2 ring-white/10">
+          <i class="fa-solid fa-bullhorn"></i>
+        </div>
+        <div class="leading-tight">
+          <div class="flex items-center gap-2">
+            <span class="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-1.5" id="brand-title">
+              CampusVoice
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">Portal</span>
+            </span>
+          </div>
+          <span class="text-[10px] sm:text-[11px] font-semibold text-slate-400 hidden sm:inline-block">
+            Arya College of Engineering & IT • RTU Kota
+          </span>
+        </div>
+      </div>
+
+      <!-- Center: Quick Public Track Input -->
+      <div class="hidden md:flex items-center max-w-xs w-full relative">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none text-xs">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </span>
+        <input type="text" id="header-quick-track-input" placeholder="Quick Track (e.g. CV-1847)" 
+          class="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl py-1.5 pl-8 pr-16 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono transition-all"
+          onkeydown="if(event.key === 'Enter') handleHeaderQuickTrack()">
+        <button onclick="handleHeaderQuickTrack()" class="absolute inset-y-1 right-1 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-[11px] font-bold text-white transition-all flex items-center">
+          Track
+        </button>
+      </div>
+
+      <!-- Right Controls: Theme Toggle & Session Details -->
+        <!-- Live Backend API Status Badge -->
+        <div id="backend-status-pill" class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 text-[11px] font-mono font-semibold text-slate-300" title="Backend API Connection Status">
+          <span id="backend-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="backend-status-text" class="hidden sm:inline">Checking API...</span>
+        </div>
+
+        <!-- Light / Dark Theme Switcher -->
+        <button onclick="toggleTheme()" id="btn-theme-toggle" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 text-slate-300 hover:text-white flex items-center justify-center transition-all" title="Toggle Light/Dark Theme">
+          <i class="fa-solid fa-moon text-xs" id="theme-icon"></i>
+        </button>
+
+        <!-- User Session Chip & Logout (Hidden when on login view) -->
+        <div id="nav-user-chip" class="hidden flex items-center gap-2.5 pl-2 border-l border-slate-700/80">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-extrabold text-xs shadow" id="nav-user-initials">
+            YR
+          </div>
+          <div class="hidden lg:block text-left leading-tight">
+            <div class="text-xs font-bold text-white truncate max-w-[120px]" id="nav-user-name">Student User</div>
+            <div class="text-[10px] text-slate-400 font-mono" id="nav-user-role">Student</div>
+          </div>
+          <button onclick="logout()" class="w-8 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 flex items-center justify-center transition-all ml-1" title="Sign Out">
+            <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ======================================================== -->
+  <!-- 1. AUTHENTICATION & LANDING VIEW (No Vertical Scrolling) -->
+  <!-- ======================================================== -->
+  <main id="view-auth" class="flex-1 h-[calc(100vh-4rem)] overflow-hidden flex items-center justify-center p-3 sm:p-4 relative">
+    <!-- Ambient Background Glows -->
+    <div class="absolute -top-36 -left-36 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl pointer-events-none animate-pulseGlow"></div>
+    <div class="absolute -bottom-36 -right-36 w-80 h-80 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none animate-pulseGlow"></div>
+
+    <div class="w-full max-w-lg bg-slate-800/85 backdrop-blur-2xl border border-slate-700/80 rounded-2xl shadow-2xl p-5 sm:p-6 relative z-10 animate-slideUp">
+      
+      <!-- Hero Header (Compact & Aligned, No Lead Badge) -->
+      <div class="text-center mb-4">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-md shadow-blue-500/25 mb-2 text-white text-xl ring-2 ring-blue-500/20">
+          <i class="fa-solid fa-bullhorn"></i>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">CampusVoice</h1>
+        <p class="text-xs text-slate-300 mt-0.5">
+          Anonymous Student Issue Reporting & Class-Level Verification System
+        </p>
+      </div>
+
+      <!-- Segmented 4-Tab Switcher -->
+      <div class="grid grid-cols-4 gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 mb-4">
+        <button id="auth-tab-student" onclick="switchAuthTab('student')" class="py-2 px-1 rounded-lg font-bold text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1 bg-blue-600 text-white shadow-md">
+          <i class="fa-solid fa-graduation-cap hidden sm:inline"></i> Student
+        </button>
+        <button id="auth-tab-register" onclick="switchAuthTab('register')" class="py-2 px-1 rounded-lg font-bold text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1 text-slate-400 hover:text-white">
+          <i class="fa-solid fa-user-plus hidden sm:inline"></i> Register
+        </button>
+        <button id="auth-tab-admin" onclick="switchAuthTab('admin')" class="py-2 px-1 rounded-lg font-bold text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1 text-slate-400 hover:text-white">
+          <i class="fa-solid fa-shield-halved hidden sm:inline"></i> Admin
+        </button>
+        <button id="auth-tab-track" onclick="switchAuthTab('track')" class="py-2 px-1 rounded-lg font-bold text-[11px] sm:text-xs transition-all flex items-center justify-center gap-1 text-slate-400 hover:text-white">
+          <i class="fa-solid fa-magnifying-glass hidden sm:inline"></i> Track
+        </button>
+      </div>
+
+      <!-- FORM 1: STUDENT LOGIN (Demo Pills Removed) -->
+      <form id="form-student-login" onsubmit="handleStudentLogin(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1">Student ID / Roll Code</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 text-xs">
+              <i class="fa-regular fa-id-badge"></i>
+            </span>
+            <input type="text" id="login-student-id" placeholder="Enter student ID (e.g. 183)" required class="form-input pl-9 text-xs py-2 font-medium">
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-300">Password</label>
+            <button type="button" onclick="openForgotPasswordModal('student')" class="text-[11px] text-blue-400 hover:text-blue-300 font-semibold underline underline-offset-2">
+              Forgot Password?
+            </button>
+          </div>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 text-xs">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <input type="password" id="login-student-pass" placeholder="Enter password" required class="form-input pl-9 pr-9 text-xs py-2">
+            <button type="button" onclick="togglePasswordVisibility('login-student-pass', this)" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-white text-xs">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full mt-2 py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-blue-600/30 transition-all flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-right-to-bracket"></i> Login to Student Portal
+        </button>
+
+        <div class="text-center pt-1">
+          <span class="text-[11px] text-slate-400">Need an account? </span>
+          <button type="button" onclick="switchAuthTab('register')" class="text-[11px] font-bold text-blue-400 hover:text-blue-300 underline underline-offset-2">
+            Create Student Account
+          </button>
+        </div>
+      </form>
+
+      <!-- FORM 2: NEW STUDENT REGISTRATION -->
+      <form id="form-student-register" onsubmit="handleStudentRegister(event)" class="space-y-2.5 hidden">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-300 mb-0.5">Full Name *</label>
+            <input type="text" id="reg-name" placeholder="Full name" required class="form-input text-xs py-1.5">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-300 mb-0.5">Student ID *</label>
+            <input type="text" id="reg-id" placeholder="e.g. 185" required class="form-input font-mono text-xs py-1.5">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-300 mb-0.5">Roll Number *</label>
+            <input type="text" id="reg-roll" placeholder="e.g. 24EARAD185" required class="form-input font-mono text-xs py-1.5">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-300 mb-0.5">Email (For OTP)</label>
+            <input type="email" id="reg-email" placeholder="student@aryacollege.in" class="form-input text-xs py-1.5">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold uppercase text-slate-300 mb-0.5">Branch *</label>
+            <select id="reg-dept" class="form-select text-[11px] py-1.5">
+              <option value="B.Tech Artificial Intelligence & Data Science">AI & Data Science</option>
+              <option value="B.Tech Computer Science & Engineering">Computer Science</option>
+              <option value="B.Tech Information Technology">Information Tech</option>
+              <option value="B.Tech Electronics & Communication">Electronics & Comm</option>
+              <option value="B.Tech Mechanical Engineering">Mechanical Engg</option>
+              <option value="B.Tech Civil Engineering">Civil Engg</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-300 mb-0.5">Sec *</label>
+            <select id="reg-sec" class="form-select text-[11px] py-1.5">
+              <option value="C">C</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-300 mb-0.5">Password *</label>
+            <input type="password" id="reg-pass" placeholder="Min 4 chars" required class="form-input text-xs py-1.5">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-300 mb-0.5">Confirm *</label>
+            <input type="password" id="reg-conf" placeholder="Confirm pass" required class="form-input text-xs py-1.5">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full mt-1 py-2 px-3 rounded-xl font-bold text-xs bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow transition-all flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-user-check"></i> Register Student Account
+        </button>
+
+        <div class="text-center pt-0.5">
+          <span class="text-[11px] text-slate-400">Already registered? </span>
+          <button type="button" onclick="switchAuthTab('student')" class="text-[11px] font-bold text-blue-400 hover:text-blue-300 underline underline-offset-2">
+            Login here
+          </button>
+        </div>
+      </form>
+
+      <!-- FORM 3: ADMINISTRATOR LOGIN (Demo Pills Removed) -->
+      <form id="form-admin-login" onsubmit="handleAdminLogin(event)" class="space-y-3 hidden">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1">Admin Username / Role ID</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 text-xs">
+              <i class="fa-solid fa-user-shield"></i>
+            </span>
+            <input type="text" id="login-admin-user" placeholder="Enter admin username (admin)" required class="form-input pl-9 text-xs py-2 font-medium">
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-300">Master Password</label>
+            <button type="button" onclick="openForgotPasswordModal('admin')" class="text-[11px] text-amber-400 hover:text-amber-300 font-semibold underline underline-offset-2">
+              Forgot Password?
+            </button>
+          </div>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 text-xs">
+              <i class="fa-solid fa-key"></i>
+            </span>
+            <input type="password" id="login-admin-pass" placeholder="Enter admin password" required class="form-input pl-9 pr-9 text-xs py-2">
+            <button type="button" onclick="togglePasswordVisibility('login-admin-pass', this)" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-white text-xs">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full mt-2 py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white shadow-md shadow-amber-600/30 transition-all flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-lock-open"></i> Login to Administrative Review
+        </button>
+      </form>
+
+      <!-- FORM 4: PUBLIC QUICK ISSUE TRACKER -->
+      <div id="form-public-track" class="space-y-3 hidden">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1">Enter Issue ID (CV-XXXX)</label>
+          <div class="flex gap-2">
+            <input type="text" id="public-track-input" placeholder="e.g. CV-1847 or CV-4821" class="form-input font-mono text-xs uppercase py-2">
+            <button type="button" onclick="handlePublicTrackSubmit()" class="px-4 py-2 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white transition-all flex items-center gap-1.5 whitespace-nowrap">
+              <i class="fa-solid fa-search"></i> Inspect
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 flex-wrap text-[11px] text-slate-400 pt-1">
+          <span>Quick Samples:</span>
+          <button type="button" onclick="setAndTrackSample('CV-1847')" class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-blue-400 font-mono hover:border-blue-500">CV-1847</button>
+          <button type="button" onclick="setAndTrackSample('CV-4821')" class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-amber-400 font-mono hover:border-amber-500">CV-4821</button>
+          <button type="button" onclick="setAndTrackSample('CV-7392')" class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-emerald-400 font-mono hover:border-emerald-500">CV-7392</button>
+        </div>
+      </div>
+
+      <!-- Identity Protection Footer -->
+      <div class="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-center gap-2 text-[11px] text-slate-400 text-center">
+        <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+        <span><b>Identity Protected:</b> Student identity is decoupled from grievances & votes.</span>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- 2. STUDENT PORTAL DASHBOARD (When logged in as Student) -->
+  <!-- ======================================================== -->
+  <div id="view-student" class="hidden flex-1 flex flex-col animate-fadeIn">
+    
+    <main class="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6">
+      
+      <!-- Top Row: Student Profile & Daily Token Card -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        
+        <!-- Left: Student Cohort Badge (5 Cols) -->
+        <div class="lg:col-span-5 glass-card p-6 flex flex-col justify-between">
+          <div class="flex items-start gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-600/30 ring-2 ring-white/10" id="student-badge-avatar">
+              YR
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-lg font-black text-white" id="student-badge-name">Yash Raj</h2>
+                <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono font-bold border border-blue-500/30" id="student-badge-roll">24EARAD183</span>
+              </div>
+              <p class="text-xs font-semibold text-slate-300" id="student-badge-dept">
+                B.Tech Artificial Intelligence & Data Science (Sec C)
+              </p>
+              <p class="text-[11px] text-slate-400">Arya College of Engineering & IT • RTU Kota</p>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
+            <span class="flex items-center gap-1.5 text-emerald-400 font-semibold">
+              <i class="fa-solid fa-lock"></i> Identity Protected Session
+            </span>
+            <button onclick="openModal('modal-student-profile')" class="text-blue-400 hover:text-blue-300 font-bold underline underline-offset-2">
+              View Profile
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Daily Verification Shield Token (7 Cols) -->
+        <div class="lg:col-span-7 p-6 rounded-2xl bg-gradient-to-br from-slate-800/90 via-slate-800/70 to-blue-950/40 border border-slate-700/80 shadow-xl flex flex-col justify-between">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <h3 class="text-base font-bold text-white">Daily Verification Shield Token</h3>
+                <span id="badge-token-status" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">ACTIVE</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-1 max-w-xl">
+                Cryptographic single-use token authorizing <b>1 anonymous vote</b> today. Prevents vote stuffing without linking votes to your identity.
+              </p>
+            </div>
+          </div>
+
+          <!-- Token Display & Action Row -->
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-700/60">
+            <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-700 px-3.5 py-2 rounded-xl font-mono text-sm font-bold text-blue-400 shadow-inner">
+              <i class="fa-solid fa-key text-xs text-slate-400"></i>
+              <span id="display-token-code">CV1832026</span>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="copyToken()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-700 hover:bg-slate-600 text-white transition-all flex items-center gap-1.5" title="Copy to clipboard">
+                <i class="fa-regular fa-copy"></i> Copy
+              </button>
+              <button onclick="openModal('modal-verify')" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/30 transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-check-to-slot"></i> Vote Now
+              </button>
+              <button onclick="resetToken()" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700" title="Reset Token">
+                <i class="fa-solid fa-rotate-left"></i> Refresh Token
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Campus Notice Board Alert Bar -->
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-950/40 via-indigo-950/30 to-slate-900 border border-blue-800/40 shadow flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-bullhorn"></i>
+          </span>
+          <div class="text-xs">
+            <b class="text-white">Campus Alert:</b> <span class="text-slate-300" id="ticker-notice-text">AI Lab 2 GPU workstations are under vendor diagnostic review; expected fix by Friday.</span>
+          </div>
+        </div>
+        <button onclick="openModal('modal-notice-board')" class="text-xs font-bold text-blue-400 hover:text-blue-300 underline underline-offset-2 whitespace-nowrap">
+          View Notices
+        </button>
+      </div>
+
+      <!-- KPI Metrics Row (5 Interactive Filter Cards) -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+        
+        <div onclick="filterTableByStatus('ALL')" class="cursor-pointer glass-card p-4 hover:border-blue-500/60 transition-all group">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span>Total Issues</span>
+            <i class="fa-solid fa-folder-open text-blue-400 group-hover:scale-110 transition-transform"></i>
+          </div>
+          <div class="mt-2 text-2xl font-black text-white" id="stat-total-issues">4</div>
+          <p class="text-[10px] text-blue-400 mt-1 font-semibold">View All Registered</p>
+        </div>
+
+        <div onclick="filterTableByStatus('UNDER VERIFICATION')" class="cursor-pointer glass-card p-4 hover:border-amber-500/60 transition-all group">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span>Verifying</span>
+            <i class="fa-solid fa-hourglass-half text-amber-400 group-hover:scale-110 transition-transform"></i>
+          </div>
+          <div class="mt-2 text-2xl font-black text-amber-400" id="stat-under-verification">1</div>
+          <p class="text-[10px] text-amber-400 mt-1 font-semibold">Peer Voting Active</p>
+        </div>
+
+        <div onclick="filterTableByStatus('CLASS VERIFIED')" class="cursor-pointer glass-card p-4 hover:border-emerald-500/60 transition-all group">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span>Class Verified</span>
+            <i class="fa-solid fa-circle-check text-emerald-400 group-hover:scale-110 transition-transform"></i>
+          </div>
+          <div class="mt-2 text-2xl font-black text-emerald-400" id="stat-class-verified">1</div>
+          <p class="text-[10px] text-emerald-400 mt-1 font-semibold">Quorum Met (≥30%)</p>
+        </div>
+
+        <div onclick="filterTableByStatus('RESOLVED')" class="cursor-pointer glass-card p-4 hover:border-cyan-500/60 transition-all group">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span>Resolved</span>
+            <i class="fa-solid fa-check-double text-cyan-400 group-hover:scale-110 transition-transform"></i>
+          </div>
+          <div class="mt-2 text-2xl font-black text-cyan-400" id="stat-resolved-issues">1</div>
+          <p class="text-[10px] text-cyan-400 mt-1 font-semibold">Ready to Re-Verify</p>
+        </div>
+
+        <div onclick="filterTableByStatus('REOPENED')" class="cursor-pointer glass-card p-4 hover:border-rose-500/60 transition-all group col-span-2 sm:col-span-1">
+          <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span>Reopened</span>
+            <i class="fa-solid fa-triangle-exclamation text-rose-400 group-hover:scale-110 transition-transform"></i>
+          </div>
+          <div class="mt-2 text-2xl font-black text-rose-400" id="stat-reopened-issues">0</div>
+          <p class="text-[10px] text-rose-400 mt-1 font-semibold">Escalated Grievances</p>
+        </div>
+
+      </div>
+
+      <!-- Core Modules Action Grid (4 Aligned Primary Cards) -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Core Action Workflows</h3>
+          <span class="text-xs text-slate-500">Click any card to launch workflow</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- Module 1: Report Issue -->
+          <div class="glass-card p-5 flex flex-col justify-between group hover:border-blue-500/70 cursor-pointer" onclick="openModal('modal-report')">
+            <div>
+              <div class="w-11 h-11 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center text-lg mb-3 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-file-circle-plus"></i>
+              </div>
+              <h4 class="font-extrabold text-white text-base">Report Issue</h4>
+              <p class="text-xs text-slate-400 mt-1">Anonymously submit campus concerns with category, priority & image proof.</p>
+            </div>
+            <button class="mt-4 w-full py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/25 transition-all">
+              File Anonymously
+            </button>
+          </div>
+
+          <!-- Module 2: Verify Issue -->
+          <div class="glass-card p-5 flex flex-col justify-between group hover:border-amber-500/70 cursor-pointer" onclick="openModal('modal-verify')">
+            <div>
+              <div class="w-11 h-11 rounded-xl bg-amber-600/20 text-amber-400 flex items-center justify-center text-lg mb-3 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-check-to-slot"></i>
+              </div>
+              <h4 class="font-extrabold text-white text-base">Verify Issue</h4>
+              <p class="text-xs text-slate-400 mt-1">Authenticate with your daily token to cast confidential votes on class issues.</p>
+            </div>
+            <button class="mt-4 w-full py-2.5 rounded-xl font-bold text-xs bg-amber-600 hover:bg-amber-500 text-white shadow-md shadow-amber-600/25 transition-all">
+              Class Voting
+            </button>
+          </div>
+
+          <!-- Module 3: Track Issue -->
+          <div class="glass-card p-5 flex flex-col justify-between group hover:border-indigo-500/70 cursor-pointer" onclick="openModal('modal-track')">
+            <div>
+              <div class="w-11 h-11 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg mb-3 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-magnifying-glass-chart"></i>
+              </div>
+              <h4 class="font-extrabold text-white text-base">Track Issue</h4>
+              <p class="text-xs text-slate-400 mt-1">Lookup any Issue ID and inspect 5-step milestone pipeline & audit timeline.</p>
+            </div>
+            <button class="mt-4 w-full py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/25 transition-all">
+              Inspect Timeline
+            </button>
+          </div>
+
+          <!-- Module 4: Re-Verification -->
+          <div class="glass-card p-5 flex flex-col justify-between group hover:border-emerald-500/70 cursor-pointer" onclick="openModal('modal-reverify')">
+            <div>
+              <div class="w-11 h-11 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center text-lg mb-3 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-repeat"></i>
+              </div>
+              <h4 class="font-extrabold text-white text-base">Re-Verification</h4>
+              <p class="text-xs text-slate-400 mt-1">Rate completed resolutions; automatic trigger escalates persistent flaws.</p>
+            </div>
+            <button class="mt-4 w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/25 transition-all">
+              Provide Feedback
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Recent Issues Registry Table -->
+      <div class="glass-card p-5 sm:p-6 space-y-4">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-base font-black text-white flex items-center gap-2">
+              Recent Campus Issues Registry
+              <span class="text-xs font-normal text-slate-400" id="table-results-counter">(4 issues found)</span>
+            </h3>
+            <p class="text-xs text-slate-400">Click any row to open the complete lifecycle tracking report</p>
+          </div>
+
+          <!-- Filter Toolbar -->
+          <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            <!-- Category Filter -->
+            <select id="filter-table-cat" onchange="renderRecentIssuesTable()" class="form-select py-1.5 px-3 text-xs w-auto">
+              <option value="ALL">All Categories</option>
+              <option value="Classroom">Classroom</option>
+              <option value="Laboratory">Laboratory</option>
+              <option value="Faculty">Faculty</option>
+              <option value="Hostel">Hostel</option>
+              <option value="Canteen">Canteen</option>
+              <option value="Administration">Administration</option>
+              <option value="Other">Other</option>
+            </select>
+
+            <!-- Search Field -->
+            <div class="relative w-full sm:w-60">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none text-xs">
+                <i class="fa-solid fa-search"></i>
+              </span>
+              <input type="text" id="input-search-issues" oninput="handleTableSearch()" placeholder="Filter by ID, Title..." class="form-input py-1.5 pl-8 pr-3 text-xs">
+            </div>
+
+            <button onclick="resetTableFilters()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs border border-slate-700" title="Reset Filters">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table Responsive Wrapper -->
+        <div class="overflow-x-auto rounded-xl border border-slate-700/80">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Issue ID</th>
+                <th>Priority</th>
+                <th>Category</th>
+                <th>Issue Title</th>
+                <th>Reported Date</th>
+                <th>Class Quorum</th>
+                <th>Current Status</th>
+                <th class="text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="table-issues-body" class="divide-y divide-slate-700/60">
+              <!-- Dynamically populated via app.js -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 3. ADMINISTRATOR COMMAND CENTER (When logged in as Admin) -->
+  <!-- ======================================================== -->
+  <div id="view-admin" class="hidden flex-1 flex flex-col animate-fadeIn">
+    
+    <main class="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6">
+      
+      <!-- Admin Top Bar & Role Badge -->
+      <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-amber-950/40 to-slate-900 border border-amber-800/50 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center text-white text-xl shadow-lg shadow-amber-600/30">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-lg font-black text-white">Central Grievance & Administrative Review</h2>
+              <span id="admin-role-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30 flex items-center gap-1.5"><i class="fa-solid fa-crown text-amber-400 text-[10px]"></i> MASTER ADMIN</span>
+            </div>
+            <p id="admin-header-subtext" class="text-xs text-slate-300">Inspect verified complaints, assign departmental work orders, and log official resolutions.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <button id="btn-admin-add-top" onclick="openModal('modal-add-admin')" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-md flex items-center gap-1.5">
+            <i class="fa-solid fa-user-plus"></i> + Add Admin
+          </button>
+          <button onclick="openModal('modal-audit-log')" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-clock-rotate-left"></i> Audit Trail
+          </button>
+          <button onclick="openModal('modal-gateway-config')" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-envelope"></i> SMTP Settings
+          </button>
+          <button onclick="exportIssuesCSV()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition-all shadow-md flex items-center gap-1.5">
+            <i class="fa-solid fa-download"></i> Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin KPI Metrics Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div class="glass-card p-3.5 text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400">Total Registry</span>
+          <div id="admin-stat-total" class="text-xl font-black text-white mt-0.5">4</div>
+        </div>
+        <div class="glass-card p-3.5 text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400">Reported</span>
+          <div id="admin-stat-reported" class="text-xl font-black text-slate-300 mt-0.5">2</div>
+        </div>
+        <div class="glass-card p-3.5 text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400">Verifying</span>
+          <div id="admin-stat-verifying" class="text-xl font-black text-amber-400 mt-0.5">1</div>
+        </div>
+        <div class="glass-card p-3.5 text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400">Class Verified</span>
+          <div id="admin-stat-verified" class="text-xl font-black text-emerald-400 mt-0.5">1</div>
+        </div>
+        <div class="glass-card p-3.5 text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400">Investigating</span>
+          <div id="admin-stat-investigating" class="text-xl font-black text-purple-400 mt-0.5">0</div>
+        </div>
+        <div class="glass-card p-3.5 text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400">Resolved</span>
+          <div id="admin-stat-resolved" class="text-xl font-black text-cyan-400 mt-0.5">1</div>
+        </div>
+        <div class="glass-card p-3.5 text-center col-span-2 sm:col-span-1">
+          <span class="text-[10px] uppercase font-bold text-slate-400">Reopened</span>
+          <div id="admin-stat-reopened" class="text-xl font-black text-rose-400 mt-0.5">0</div>
+        </div>
+      </div>
+
+      <!-- Admin Selected Issue Action Command Bar -->
+      <div id="admin-action-command-card" class="p-5 rounded-2xl bg-slate-800/90 border border-slate-700/80 space-y-4">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-crosshairs"></i> Selected For Management Action:
+            </span>
+            <div class="text-base font-bold text-white mt-0.5" id="admin-selected-title">
+              None Selected (Click any row in the registry table below)
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap" id="admin-action-btn-group">
+            <button onclick="adminApplyStatus('UNDER INVESTIGATION')" id="btn-admin-investigate" disabled class="px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white transition-all flex items-center gap-1.5">
+              <i class="fa-solid fa-magnifying-glass"></i> Under Investigation
+            </button>
+            <button onclick="adminApplyStatus('RESOLVED')" id="btn-admin-resolve" disabled class="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white transition-all flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-check"></i> Mark Resolved
+            </button>
+            <button onclick="adminApplyStatus('REOPENED')" id="btn-admin-reopen" disabled class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white transition-all flex items-center gap-1.5">
+              <i class="fa-solid fa-rotate-right"></i> Reopen Issue
+            </button>
+          </div>
+        </div>
+
+        <!-- Department Assignment & Remarks Sub-Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-3 border-t border-slate-700/60" id="admin-action-details-row">
+          <div class="sm:col-span-4">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Assign Department</label>
+            <select id="admin-assign-dept" class="form-select py-2 text-xs">
+              <option value="IT Cell & Laboratories">IT Cell & Laboratories</option>
+              <option value="Electrical & Maintenance">Electrical & Maintenance</option>
+              <option value="Academic Dean Office">Academic Dean Office</option>
+              <option value="Canteen Management Board">Canteen Management Board</option>
+              <option value="Hostel Administration">Hostel Administration</option>
+              <option value="Proctorial Board">Proctorial Board</option>
+            </select>
+          </div>
+          <div class="sm:col-span-6">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Resolution Remarks / Action Log</label>
+            <input type="text" id="admin-remarks-input" placeholder="e.g. Work order issued to vendor; parts replacement scheduled." class="form-input py-2 text-xs">
+          </div>
+          <div class="sm:col-span-2 flex items-end">
+            <button onclick="adminSaveRemarks()" id="btn-admin-save-remarks" disabled class="w-full py-2 px-3 rounded-xl text-xs font-bold bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-white transition-all flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-floppy-disk"></i> Save Notes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Table Card -->
+      <div class="glass-card p-5 sm:p-6 space-y-4">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <h3 class="text-base font-black text-white">
+            Administrative Issue Registry
+          </h3>
+
+          <div class="flex flex-wrap items-center gap-2.5">
+            <select id="admin-filter-cat" onchange="renderAdminTable()" class="form-select py-1.5 px-3 text-xs w-auto">
+              <option value="ALL">All Categories</option>
+              <option value="Classroom">Classroom</option>
+              <option value="Laboratory">Laboratory</option>
+              <option value="Faculty">Faculty</option>
+              <option value="Hostel">Hostel</option>
+              <option value="Canteen">Canteen</option>
+              <option value="Administration">Administration</option>
+              <option value="Other">Other</option>
+            </select>
+
+            <select id="admin-filter-status" onchange="renderAdminTable()" class="form-select py-1.5 px-3 text-xs w-auto">
+              <option value="ALL">All Statuses</option>
+              <option value="REPORTED">REPORTED</option>
+              <option value="UNDER VERIFICATION">UNDER VERIFICATION</option>
+              <option value="CLASS VERIFIED">CLASS VERIFIED</option>
+              <option value="UNDER INVESTIGATION">UNDER INVESTIGATION</option>
+              <option value="RESOLVED">RESOLVED</option>
+              <option value="REOPENED">REOPENED</option>
+            </select>
+
+            <input type="text" id="admin-search-input" oninput="renderAdminTable()" placeholder="Search registry..." class="form-input py-1.5 px-3 text-xs w-48">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-700/80">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Issue ID</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Title & Description</th>
+                <th>Reported</th>
+                <th>Assigned Dept</th>
+                <th>Status</th>
+                <th class="text-right">Select</th>
+              </tr>
+            </thead>
+            <tbody id="table-admin-body" class="divide-y divide-slate-700/60">
+              <!-- Dynamically rendered via app.js -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- 3B. Administrator Directory & Privilege Control Card -->
+      <div class="glass-card p-5 sm:p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-slate-700/60">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-black text-white flex items-center gap-2">
+                <i class="fa-solid fa-users-gear text-amber-400"></i> Administrative Authority & Staff Roster
+              </h3>
+              <span id="admin-count-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">3 Authorized Admins</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Existing administrators directory. Only the Master Administrator has authority to provision or revoke administrator privileges.</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span id="admin-roster-lock-notice" class="hidden text-xs px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-400 font-semibold flex items-center gap-1.5">
+              <i class="fa-solid fa-lock text-[10px]"></i> Master Admin Only (Read-Only)
+            </span>
+            <button id="btn-admin-add-roster" onclick="openModal('modal-add-admin')" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-blue-600/30 transition-all flex items-center gap-2">
+              <i class="fa-solid fa-user-plus"></i> Add New Administrator
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-700/80">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Administrator</th>
+                <th>Username</th>
+                <th>Assigned Department</th>
+                <th>Designation / Role</th>
+                <th>Added Date</th>
+                <th>Privilege Level</th>
+                <th class="text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="table-admins-body" class="divide-y divide-slate-700/60">
+              <!-- Dynamically rendered via app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 4. MODALS & DIALOGS ENGINE -->
+  <!-- ======================================================== -->
+
+  <!-- MODAL 1: ANONYMOUS ISSUE REPORTING -->
+  <div id="modal-report" class="modal-overlay hidden">
+    <div class="modal-dialog max-w-2xl">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-5 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-file-circle-plus text-blue-400"></i> Submit Anonymous Campus Issue
+          </h3>
+          <p class="text-xs text-slate-400">Strict Identity Decoupling: Identity is cryptographically isolated and never stored.</p>
+        </div>
+        <button onclick="closeModal('modal-report')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <form onsubmit="handleReportIssue(event)" class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Category *</label>
+            <select id="report-category" onchange="updateCategoryHint()" class="form-select">
+              <option value="Classroom">Classroom (AC, Smartboard, Furniture)</option>
+              <option value="Laboratory">Laboratory (GPU, Software, Hardware)</option>
+              <option value="Faculty">Faculty & Academic (Guidance, Syllabus)</option>
+              <option value="Hostel">Hostel (Electricity, Water, Mess)</option>
+              <option value="Canteen">Canteen (Hygiene, POS, Pricing)</option>
+              <option value="Administration">Administration (Fee, Documents)</option>
+              <option value="Library">Library & Study Hall</option>
+              <option value="Transport">Bus Transport & Parking</option>
+              <option value="Other">Other Campus Facility</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Urgency Priority *</label>
+            <select id="report-priority" class="form-select">
+              <option value="MEDIUM">Medium (Normal class impact)</option>
+              <option value="LOW">Low (Minor inconvenience)</option>
+              <option value="HIGH">High (Disrupting lectures/labs)</option>
+              <option value="CRITICAL">Critical (Immediate safety/hardware danger)</option>
+            </select>
+          </div>
+        </div>
+
+        <p id="report-category-hint" class="text-xs text-blue-400 bg-blue-950/30 p-2.5 rounded-xl border border-blue-900/40">
+          Classroom: Report issues with projectors, AC units, furniture, or smart boards.
+        </p>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Issue Title / Subject *</label>
+          <input type="text" id="report-title" placeholder="e.g. Split AC in Room 304 cutting power after 10 mins" required class="form-input">
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300">Detailed Description *</label>
+            <span id="report-char-count" class="text-xs text-slate-400 font-mono">0 / 500 characters</span>
+          </div>
+          <textarea id="report-desc" rows="4" maxlength="500" oninput="updateCharCount(this)" placeholder="Provide specific room numbers, equipment details, or recurring patterns..." required class="form-textarea"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Supporting Proof / Photo (Optional)</label>
+          <div class="flex items-center gap-3">
+            <label class="cursor-pointer px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-white transition-all flex items-center gap-2">
+              <i class="fa-solid fa-cloud-arrow-up text-blue-400"></i> Upload File...
+              <input type="file" id="report-file" onchange="handleFileSelect(this)" class="hidden">
+            </label>
+            <span id="report-file-name" class="text-xs text-slate-400 truncate max-w-xs">No file selected</span>
+            <button type="button" id="btn-remove-file" onclick="removeSelectedFile()" class="hidden text-xs text-red-400 hover:text-red-300">
+              <i class="fa-solid fa-trash"></i> Remove
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-700">
+          <button type="button" onclick="closeModal('modal-report')" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white bg-slate-900 transition-all">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-paper-plane"></i> Submit Issue (Generate CV-ID)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: CLASS-LEVEL VERIFICATION (VOTING) -->
+  <div id="modal-verify" class="modal-overlay hidden">
+    <div class="modal-dialog max-w-2xl">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 p-5 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-check-to-slot text-amber-400"></i> Class-Level Issue Verification
+          </h3>
+          <p class="text-xs text-slate-400">Democratic Quorum: 30% class participation required to promote issue to Class Verified.</p>
+        </div>
+        <button onclick="closeModal('modal-verify')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+        <!-- Step 1: Authorization -->
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/80 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">1. Verification Authorization</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Single-Use Daily Token *</label>
+              <div class="flex gap-2">
+                <input type="text" id="verify-token-input" placeholder="CV1832026" class="form-input font-mono text-blue-400">
+                <button type="button" onclick="pasteDailyToken()" class="px-3 py-1.5 rounded-xl text-xs bg-slate-700 text-white font-bold hover:bg-slate-600 transition-all">Paste</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Select Issue Under Review *</label>
+              <select id="verify-issue-select" onchange="updateVerifyModalStats()" class="form-select text-xs">
+                <!-- Dynamically populated via app.js -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Voting Cards -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">2. Confidential Class Question</h4>
+          <p class="text-sm font-semibold text-blue-300 mb-3">"Have you personally encountered or been impacted by this problem on campus?"</p>
+          
+          <div class="grid grid-cols-3 gap-3">
+            <div onclick="selectVoteCard('Frequently')" id="vote-card-Frequently" class="vote-card p-4 rounded-2xl text-center">
+              <i class="fa-solid fa-circle-exclamation text-blue-400 text-xl mb-1.5"></i>
+              <div class="text-xs font-bold text-white">Frequently</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Regular basis (Weight: 1.0)</p>
+            </div>
+
+            <div onclick="selectVoteCard('Sometimes')" id="vote-card-Sometimes" class="vote-card p-4 rounded-2xl text-center">
+              <i class="fa-solid fa-clock-rotate-left text-amber-400 text-xl mb-1.5"></i>
+              <div class="text-xs font-bold text-white">Sometimes</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Occasionally (Weight: 0.5)</p>
+            </div>
+
+            <div onclick="selectVoteCard('Never')" id="vote-card-Never" class="vote-card p-4 rounded-2xl text-center">
+              <i class="fa-solid fa-circle-xmark text-slate-400 text-xl mb-1.5"></i>
+              <div class="text-xs font-bold text-white">Never</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Not faced (Weight: 0.0)</p>
+            </div>
+          </div>
+
+          <div class="mt-4 flex justify-end">
+            <button onclick="handleVoteSubmit()" class="px-5 py-2.5 rounded-xl font-bold text-xs bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/30 transition-all flex items-center gap-2">
+              <i class="fa-solid fa-check"></i> Submit Anonymous Vote
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Quorum & Score Breakdown -->
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-700/80 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">3. Class Quorum & Weighted Score Engine</h4>
+            <span id="verify-outcome-badge" class="badge-status UNDER_VERIFICATION">UNDER VERIFICATION</span>
+          </div>
+
+          <div class="space-y-2.5 text-xs">
+            <div>
+              <div class="flex justify-between mb-1 font-semibold text-slate-300">
+                <span>Frequently Faced</span>
+                <span id="verify-freq-val">0% (0 votes)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div id="verify-freq-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between mb-1 font-semibold text-slate-300">
+                <span>Sometimes Faced</span>
+                <span id="verify-some-val">0% (0 votes)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div id="verify-some-bar" class="bg-amber-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between mb-1 font-semibold text-slate-300">
+                <span>Never Faced</span>
+                <span id="verify-never-val">0% (0 votes)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div id="verify-never-bar" class="bg-slate-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800">
+              <div class="flex justify-between mb-1 font-semibold text-emerald-400">
+                <span>Cohort Participation (Quorum Requirement: 30%)</span>
+                <span id="verify-part-val">0% (0/60 students)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div id="verify-part-bar" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: TRACK ISSUE PROGRESS -->
+  <div id="modal-track" class="modal-overlay hidden">
+    <div class="modal-dialog max-w-2xl">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-magnifying-glass-chart text-indigo-400"></i> Track Issue Progress & Milestone Pipeline
+          </h3>
+          <p class="text-xs text-slate-400">Inspect lifecycle status, audit transitions, and verification metrics.</p>
+        </div>
+        <button onclick="closeModal('modal-track')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+        <!-- Search Input & Sample Pills -->
+        <div class="space-y-2">
+          <div class="flex gap-2">
+            <input type="text" id="track-id-input" value="CV-4821" placeholder="Enter Issue ID (CV-4821)" class="form-input font-mono text-sm uppercase">
+            <button onclick="performTrackLookup()" class="px-5 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-500 text-white transition-all flex items-center gap-1.5 whitespace-nowrap">
+              <i class="fa-solid fa-search"></i> Inspect
+            </button>
+          </div>
+          <!-- Quick Pills -->
+          <div class="flex items-center gap-1.5 flex-wrap text-xs text-slate-400">
+            <span>Quick Samples:</span>
+            <button type="button" onclick="quickTrack('CV-1847')" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-blue-400 font-mono hover:bg-slate-700">CV-1847</button>
+            <button type="button" onclick="quickTrack('CV-4821')" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-400 font-mono hover:bg-slate-700">CV-4821</button>
+            <button type="button" onclick="quickTrack('CV-7392')" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-emerald-400 font-mono hover:bg-slate-700">CV-7392</button>
+          </div>
+        </div>
+
+        <!-- 5-Step Milestone Stepper -->
+        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">5-Stage Lifecycle Stepper</h4>
+          <div class="milestone-stepper" id="track-stepper-container">
+            <div id="step-1" class="step-node active"><i class="fa-solid fa-check"></i> 1. Reported</div>
+            <div id="step-2" class="step-node active"><i class="fa-solid fa-hourglass"></i> 2. Verifying</div>
+            <div id="step-3" class="step-node pending"><i class="fa-regular fa-circle"></i> 3. Verified</div>
+            <div id="step-4" class="step-node pending"><i class="fa-regular fa-circle"></i> 4. Assigned</div>
+            <div id="step-5" class="step-node pending"><i class="fa-regular fa-circle"></i> 5. Resolved</div>
+          </div>
+        </div>
+
+        <!-- Issue Details Card -->
+        <div id="track-result-card" class="p-5 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span id="track-issue-id" class="text-lg font-mono font-black text-blue-400">CV-4821</span>
+              <button onclick="copyTrackedId()" class="text-xs text-slate-400 hover:text-white" title="Copy ID">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+            <span id="track-status-badge" class="badge-status UNDER_VERIFICATION">UNDER VERIFICATION</span>
+          </div>
+
+          <div class="flex items-center gap-3 text-xs text-slate-400 flex-wrap">
+            <span>Category: <b id="track-category" class="text-white">Laboratory</b></span>
+            <span>Priority: <span id="track-priority" class="badge-priority HIGH">HIGH</span></span>
+            <span>Date: <b id="track-date" class="text-white">2026-10-08</b></span>
+            <span>Dept: <b id="track-assigned-dept" class="text-white">IT Cell & Laboratories</b></span>
+          </div>
+
+          <div>
+            <h5 id="track-title" class="text-sm font-bold text-white">GPU workstations rebooting during PyTorch model training</h5>
+            <p id="track-desc" class="text-xs text-slate-300 mt-1 bg-slate-800/70 p-3 rounded-xl border border-slate-700/60">
+              Systems 14 to 22 experience kernel panics and black screens under GPU load.
+            </p>
+          </div>
+
+          <!-- Remarks Card if present -->
+          <div id="track-remarks-box" class="text-xs text-amber-300 bg-amber-950/30 p-2.5 rounded-xl border border-amber-900/40">
+            <b>Admin Remarks:</b> <span id="track-remarks-text">Hardware diagnostic ongoing.</span>
+          </div>
+
+          <!-- Vote & Quorum Gauge -->
+          <div class="pt-2 border-t border-slate-800">
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Class Quorum & Participation:</span>
+              <span id="track-votes-summary" class="font-bold text-white">Frequently: 74% | Quorum: 63%</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div id="track-votes-bar" class="bg-blue-500 h-2 rounded-full" style="width: 74%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Row: Print / Copy Link -->
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button onclick="window.print()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all flex items-center gap-1.5 border border-slate-700">
+            <i class="fa-solid fa-print"></i> Print Report
+          </button>
+          <button onclick="copyTrackingShareLink()" class="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-share-nodes"></i> Copy Share Link
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: RE-VERIFICATION -->
+  <div id="modal-reverify" class="modal-overlay hidden">
+    <div class="modal-dialog max-w-xl">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 p-5 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-repeat text-emerald-400"></i> Post-Resolution Re-Verification
+          </h3>
+          <p class="text-xs text-slate-400">Accountability Loop: Validate whether management's fix genuinely solved the issue.</p>
+        </div>
+        <button onclick="closeModal('modal-reverify')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Select Resolved Issue *</label>
+          <select id="reverify-issue-select" class="form-select text-xs">
+            <!-- Populated via app.js -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">How is the situation after reported resolution? *</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div onclick="selectReverifyOption('Resolved')" id="reverify-card-Resolved" class="reverify-card p-4 rounded-2xl text-center">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-lg mb-1"></i>
+              <div class="text-xs font-bold text-white">Resolved</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Fixed completely</p>
+            </div>
+
+            <div onclick="selectReverifyOption('Partially Resolved')" id="reverify-card-Partially" class="reverify-card p-4 rounded-2xl text-center">
+              <i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg mb-1"></i>
+              <div class="text-xs font-bold text-white">Partially</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Incomplete fix</p>
+            </div>
+
+            <div onclick="selectReverifyOption('Still Facing Problem')" id="reverify-card-Still" class="reverify-card p-4 rounded-2xl text-center">
+              <i class="fa-solid fa-circle-xmark text-rose-400 text-lg mb-1"></i>
+              <div class="text-xs font-bold text-white">Still Facing</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Persists / Unsolved</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto-reopen Alert Notice -->
+        <div class="p-3.5 rounded-xl bg-rose-950/40 border border-rose-800/60 text-xs text-rose-300 flex items-start gap-2.5">
+          <i class="fa-solid fa-triangle-exclamation text-rose-400 mt-0.5"></i>
+          <div>
+            <b>Auto-Reopen Trigger:</b> If verified students report <i>'Still Facing Problem'</i>, the issue is escalated automatically to <b>REOPENED</b> status for management intervention.
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-3 border-t border-slate-700">
+          <button type="button" onclick="closeModal('modal-reverify')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white bg-slate-900 transition-all">Cancel</button>
+          <button type="button" onclick="handleReverifySubmit()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i> Submit Feedback
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: COMPLETE WORKING FORGOT PASSWORD & OTP SERVICE -->
+  <div id="modal-forgot-password" class="modal-overlay hidden">
+    <div class="modal-dialog max-w-md">
+      <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-4 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <h3 class="text-sm sm:text-base font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-key text-blue-400"></i> Password Recovery & OTP
+          </h3>
+          <p class="text-[11px] text-slate-400">Fast 2-step verification for Student or Admin accounts.</p>
+        </div>
+        <button onclick="closeModal('modal-forgot-password')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-3.5">
+        
+        <!-- STEP 1: Identification & OTP Generation -->
+        <div id="forgot-step-1" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+              Account Identifier (ID / Roll / Admin Username) *
+            </label>
+            <input type="text" id="forgot-account-input" placeholder="e.g. 183 or 24EARAD183 or admin" required class="form-input font-mono text-sm py-2">
+            <p class="text-[11px] text-slate-400 mt-1">Enter your registered Student ID (e.g. 183) or Admin username (admin).</p>
+          </div>
+
+          <div class="pt-1">
+            <button type="button" onclick="handleSendResetOtp()" class="w-full py-2.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white transition-all flex items-center justify-center gap-2 shadow-md">
+              <i class="fa-solid fa-paper-plane"></i> Send 6-Digit Verification OTP
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 2: Live OTP Verification & New Password Setup -->
+        <div id="forgot-step-2" class="space-y-3 hidden">
+          
+          <!-- Account Identification Badge -->
+          <div id="forgot-account-badge" class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-700 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Target Account:</span>
+            <span id="forgot-account-name-text" class="font-bold text-white">Yash Raj (183)</span>
+          </div>
+
+          <!-- Live Interactive OTP Delivery Alert Box -->
+          <div class="p-3.5 rounded-xl bg-blue-950/60 border border-blue-500/50 text-xs text-blue-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold flex items-center gap-1.5 text-blue-300">
+                <i class="fa-solid fa-envelope-circle-check text-blue-400"></i> Simulated Gateway Code:
+              </span>
+              <span id="forgot-otp-display-code" class="font-mono text-emerald-400 font-black text-sm px-2.5 py-0.5 rounded-lg bg-blue-900/80 border border-blue-400/40 tracking-widest shadow-inner">------</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] pt-1.5 border-t border-blue-800/50">
+              <span class="text-slate-300" id="forgot-otp-destination">Sent to registered email / SMS</span>
+              <button type="button" onclick="autofillReceivedOtp()" class="px-2 py-0.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all text-[11px]">
+                ⚡ Auto-Fill Code
+              </button>
+            </div>
+          </div>
+
+          <!-- OTP Input Field -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Enter 6-Digit OTP *</label>
+            <input type="text" id="forgot-otp-input" placeholder="• • • • • •" maxlength="6" class="form-input font-mono text-center tracking-widest text-base font-bold py-2">
+          </div>
+
+          <!-- New Password Input -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">New Password (Min 4 chars) *</label>
+            <div class="relative">
+              <input type="password" id="forgot-new-pass" placeholder="Enter new password" required class="form-input pr-9 text-xs py-2">
+              <button type="button" onclick="togglePasswordVisibility('forgot-new-pass', this)" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-white text-xs">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Confirm New Password Input -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Confirm New Password *</label>
+            <div class="relative">
+              <input type="password" id="forgot-conf-pass" placeholder="Re-enter new password" required class="form-input pr-9 text-xs py-2">
+              <button type="button" onclick="togglePasswordVisibility('forgot-conf-pass', this)" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-white text-xs">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="pt-1 space-y-2">
+            <button type="button" onclick="handleVerifyOtpAndReset()" class="w-full py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white transition-all flex items-center justify-center gap-1.5 shadow-md">
+              <i class="fa-solid fa-key"></i> Confirm & Reset Password Now
+            </button>
+            <div class="flex items-center justify-between text-xs pt-1">
+              <button type="button" onclick="handleForgotBackToStep1()" class="text-slate-400 hover:text-white flex items-center gap-1">
+                <i class="fa-solid fa-arrow-left text-[10px]"></i> Change Account
+              </button>
+              <button type="button" onclick="handleSendResetOtp()" class="text-blue-400 hover:text-blue-300 font-bold">
+                <i class="fa-solid fa-rotate text-[10px]"></i> Resend OTP Code
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: LIVE SMTP & SMS GATEWAY CONFIGURATION -->
+  <div id="modal-gateway-config" class="modal-overlay hidden">
+    <div class="modal-dialog max-w-lg">
+      <div class="bg-gradient-to-r from-slate-900 via-cyan-950 to-slate-900 p-5 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-server text-cyan-400"></i> Mail & SMS Gateway Settings
+          </h3>
+          <p class="text-[11px] text-slate-400">Configure SMTP servers (Gmail, Office365) for live delivery.</p>
+        </div>
+        <button onclick="closeModal('modal-gateway-config')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-3.5 overflow-y-auto max-h-[75vh]">
+        <div id="smtp-master-only-banner" class="hidden p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
+          <i class="fa-solid fa-lock text-amber-400"></i>
+          <span><b>Master Admin Privilege:</b> SMTP & live gateway configurations can only be modified by the Master Administrator.</span>
+        </div>
+
+        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-700">
+          <span class="text-xs font-bold text-white">Enable Real SMTP Dispatch</span>
+          <input type="checkbox" id="smtp-enable-check" class="accent-cyan-500 w-4 h-4">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">SMTP Host</label>
+            <input type="text" id="smtp-host" value="smtp.gmail.com" class="form-input text-xs">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">SMTP Port</label>
+            <input type="text" id="smtp-port" value="587" class="form-input text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">SMTP Username / Email</label>
+          <input type="text" id="smtp-user" value="campusvoice.arya@gmail.com" class="form-input text-xs">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Sender 'From' Header</label>
+          <input type="text" id="smtp-from" value="CampusVoice &lt;no-reply@campusvoice.edu&gt;" class="form-input text-xs">
+        </div>
+
+        <div class="pt-2 flex items-center justify-between">
+          <button id="btn-smtp-test" type="button" onclick="testGatewayDispatch()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-paper-plane"></i> Test Dispatch
+          </button>
+          <button id="btn-smtp-save" type="button" onclick="saveGatewayConfig()" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-all">
+            Save Settings
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 7: FULL SYSTEM AUDIT LOG -->
+  <div id="modal-audit-log" class="modal-overlay hidden">
+    <div class="modal-dialog max-w-3xl">
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-indigo-400"></i> CampusVoice Audit Trail & System Log
+          </h3>
+          <p class="text-[11px] text-slate-400">Immutable record of state changes, verification events, and administrator remarks.</p>
+        </div>
+        <button onclick="closeModal('modal-audit-log')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
+        <div class="overflow-x-auto rounded-xl border border-slate-700/80">
+          <table class="custom-table text-xs">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Issue ID</th>
+                <th>Event Action</th>
+                <th>Actor Role</th>
+                <th>Remarks / Outcome</th>
+              </tr>
+            </thead>
+            <tbody id="table-audit-body" class="divide-y divide-slate-700/60">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 8: STUDENT PROFILE MODAL -->
+  <div id="modal-student-profile" class="modal-overlay hidden">
+    <div class="modal-dialog max-w-md">
+      <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-5 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-user-graduate text-blue-400"></i> Student Profile & Academic Record
+          </h3>
+          <p class="text-[11px] text-slate-400">Arya College of Engineering & IT • RTU Kota</p>
+        </div>
+        <button onclick="closeModal('modal-student-profile')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div class="flex items-center gap-4 p-4 rounded-2xl bg-slate-900 border border-slate-700">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-xl" id="profile-modal-avatar">
+            YR
+          </div>
+          <div>
+            <h4 class="text-base font-black text-white" id="profile-modal-name">Yash Raj</h4>
+            <div class="text-xs font-mono text-blue-400" id="profile-modal-roll">24EARAD183</div>
+            <div class="text-[11px] text-slate-400" id="profile-modal-branch">B.Tech AI & Data Science (Sec C)</div>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between py-1.5 border-b border-slate-800">
+            <span class="text-slate-400">College Affiliation:</span>
+            <span class="text-white font-medium">Arya College of Engg & IT</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800">
+            <span class="text-slate-400">University Affiliation:</span>
+            <span class="text-white font-medium">Rajasthan Technical University (RTU), Kota</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800">
+            <span class="text-slate-400">Daily Voting Token:</span>
+            <span class="text-blue-400 font-mono font-bold" id="profile-modal-token">CV1832026</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-800">
+            <span class="text-slate-400">Voting Privacy:</span>
+            <span class="text-emerald-400 font-bold">100% Anonymized (One-Way Hash)</span>
+          </div>
+        </div>
+
+        <button onclick="closeModal('modal-student-profile')" class="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-800 hover:bg-slate-700 text-white transition-all">
+          Close Profile
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 9: CAMPUS NOTICE BOARD -->
+  <div id="modal-notice-board" class="modal-overlay hidden">
+    <div class="modal-dialog max-w-lg">
+      <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-5 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-bullhorn text-blue-400"></i> Official Campus Notices & Actions
+          </h3>
+          <p class="text-[11px] text-slate-400">Department maintenance bulletins and grievance updates.</p>
+        </div>
+        <button onclick="closeModal('modal-notice-board')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-3 overflow-y-auto max-h-[70vh]" id="notice-board-container">
+        <!-- Dynamically rendered -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 10: PROVISION NEW ADMINISTRATOR -->
+  <div id="modal-add-admin" class="modal-overlay hidden">
+    <div class="modal-dialog max-w-lg">
+      <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-5 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-user-shield text-blue-400"></i> Provision Administrator Account
+          </h3>
+          <p class="text-[11px] text-slate-400">Grant administrative review and resolution authority to verified staff.</p>
+        </div>
+        <button onclick="closeModal('modal-add-admin')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleCreateAdmin(event)" class="p-6 space-y-3.5 overflow-y-auto max-h-[75vh]">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Full Name *</label>
+          <input type="text" id="add-admin-name" placeholder="e.g. Dr. Rajesh Sharma" required class="form-input text-xs py-2">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Admin Username *</label>
+            <input type="text" id="add-admin-username" placeholder="e.g. rajesh_admin" required class="form-input font-mono text-xs py-2">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Official College Email *</label>
+            <input type="email" id="add-admin-email" placeholder="rajesh@aryacollege.in" required class="form-input text-xs py-2">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Assigned Department *</label>
+            <select id="add-admin-dept" class="form-select text-xs py-2">
+              <option value="IT Cell & Laboratories">IT Cell & Laboratories</option>
+              <option value="Electrical & Maintenance">Electrical & Maintenance</option>
+              <option value="Academic Dean Office">Academic Dean Office</option>
+              <option value="Canteen Management Board">Canteen Management Board</option>
+              <option value="Hostel Administration">Hostel Administration</option>
+              <option value="Proctorial Board">Proctorial Board</option>
+              <option value="Central Grievance Office">Central Grievance Office</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Designation / Role *</label>
+            <select id="add-admin-role" class="form-select text-xs py-2">
+              <option value="Department Head">Department Head</option>
+              <option value="Dean / Proctor">Dean / Proctor</option>
+              <option value="IT Administrator">IT Administrator</option>
+              <option value="Facility Officer">Facility Officer</option>
+              <option value="Grievance Officer">Grievance Officer</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Initial Password *</label>
+            <div class="relative">
+              <input type="password" id="add-admin-password" placeholder="Min 4 characters" required class="form-input pr-8 text-xs py-2">
+              <button type="button" onclick="togglePasswordVisibility('add-admin-password', this)" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-white text-xs">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Confirm Password *</label>
+            <div class="relative">
+              <input type="password" id="add-admin-confirm-password" placeholder="Re-enter password" required class="form-input pr-8 text-xs py-2">
+              <button type="button" onclick="togglePasswordVisibility('add-admin-confirm-password', this)" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-white text-xs">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-400 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+          <i class="fa-solid fa-shield-halved text-blue-400 mr-1"></i> The new administrator will have authority to review complaints, update resolution status, add remarks, and log official actions.
+        </p>
+
+        <div class="pt-2 flex items-center justify-end gap-3 border-t border-slate-700/60">
+          <button type="button" onclick="closeModal('modal-add-admin')" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-md shadow-blue-600/30 transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-user-check"></i> Create Administrator Account
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Custom Core Application JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
