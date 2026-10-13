@@ -11,7 +11,7 @@
 [![IEEE Std 830-1998](https://img.shields.io/badge/Standard-IEEE%20Std%20830--1998-success)](#)
 
 > **Live Production Server:** [https://webfinalporject.vercel.app](https://webfinalporject.vercel.app) *(Alternate Mirror: [https://campusvoice-web.vercel.app](https://campusvoice-web.vercel.app))*  
-
+> **Secondary Cloud Deployment:** [https://campusvoice-web.onrender.com](https://campusvoice-web.onrender.com)
 
 ---
 
@@ -716,10 +716,10 @@ All official academic documents, IEEE research publications, specifications, and
 | 📘 **Comprehensive Project Report** | PDF | Full 13-week technical report, implementation methodology, and system evaluation | [View Project Report (PDF)](https://tinyurl.com/campusvoicereport) |
 | 📑 **IEEE Research Paper** | IEEE Format PDF | Academic research paper detailing cryptographic identity decoupling & verification models | [View Research Paper (PDF)](https://tinyurl.com/CampusVoiceReaserachPaper) |
 | 📝 **Software Requirements Specification (SRS)** | IEEE Std 830-1998 | Complete functional requirements, non-functional constraints, and UML diagrams | [View SRS Document (PDF)](https://tinyurl.com/SRSWorms) |
-| 📊 **Project Presentation Slide Deck (PPT)** | PowerPoint / Slide Deck | 15-Slide technical defense presentation covering architecture, algorithms, and viva slides | `[Presentation Slide Deck (PPT)](https://tinyurl.com/CampusVoicePresentation)` |
-| 🎥 **Project Demonstration Video** | Video Walkthrough | End-to-end recorded system demonstration showing student filing, voting, and admin routing | `[Project Demonstration Video](https://tinyurl.com/VedioDemonstration)` |
+| 📊 **Project Presentation Slide Deck (PPT)** | PowerPoint / Slide Deck | 15-Slide technical defense presentation covering architecture, algorithms, and viva slides | [View Presentation (PPT)](https://tinyurl.com/CampusVoicePresentation) |
+| 🎥 **Project Demonstration Video** | Video Walkthrough | End-to-end recorded system demonstration showing student filing, voting, and admin routing | [Watch Demonstration Video](https://tinyurl.com/VedioDemonstration) |
 
-> *Note: Official PDF documents can be viewed directly online by clicking their respective links. Presentation slides and project video links are reserved and will be published shortly.*
+> *Note: Click any link in the table above to view the corresponding document, slide deck, or demonstration video directly.*
 
 ---
 
